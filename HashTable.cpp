@@ -2,6 +2,8 @@
 
 int main(){	
 
+	clock_t start = clock();
+	
 	int buff_size = 0;
 	Buff_elem_t *buff = read_file_to_created_buff(ITABLE_FILE, &buff_size);
 
@@ -10,79 +12,64 @@ int main(){
 	int text_size = 0;
 	str_ptr text = make_text_must_free(buff, buff_size, &text_size);
 
-	FILE * file = fopen(OTABLE_FILE, "w");
-	if(file == nullptr){
-		fprintf(stderr, "Not able to open file %s for writing\n", OTABLE_FILE);
-		return 1;
-	}
+	Hash_table_t hash_table = {};
 
-	bool do_break = false;
-
-	fprintf(file, "data, ");
-	for(int i = 0; i < THE_GREATEST_PRIME_NUMBER; i++){
-		fprintf(file, "%d,", i);
-	}
-	fprintf(file, "\n");
-
-	for(int _ = 0; _ >= 0; _++){
+	HASH_TABLE_INIT(&hash_table);
+	printf("%d\n", text_size);
+	for(int _ = 0; _ < 100; _++){
+	
+		//printf("Cycle#%d\n",_);
 		
-		bool valid = true;
-		
-		Hash_table_t hash_table = {};
-		HASH_TABLE_INIT(&hash_table, THE_GREATEST_PRIME_NUMBER);
-
 		for(size_t i = 0; i < text_size; i++){	
-
-			hash_t hash = 0;
+		
+			List_elem_t = 
 			
-			#define DEF_HASH(num, name, hash_code) else if(num == _){\
-					if(hash_table.hash_name == nullptr){\
-						hash_table.hash_name = #name;\
-					}\
-					hash_code;\
+			hash_t hash = my_hash(text[i].str, sizeof(char)*text[i].size);
+
+			int pos = hash_table_find(&hash_table, text[i].str, hash);
+
+			if (pos < 0){
+				pos = hash_table_put(&hash_table, text[i].str, hash);
 			}
 
-			if(true == false){return 1303;}
-			#include"hashes.h"
-			else{
-				valid = false;
-				break;
+		}
+		for(size_t i = 0; i < text_size; i++){	
+			
+			hash_t hash = my_hash(text[i].str, sizeof(char)*text[i].size);
+			
+			int pos = hash_table_find(&hash_table, text[i].str, hash);
+			if (pos >= 0){
+				if(!hash_table_del(&hash_table, pos, hash)){
+					fprintf(stderr, "Error!\n");	
+				}
 			}
 
-			#undef DEF_HASH
-
-			hash_table_put(&hash_table, text[i].str, hash);
 		}
-
-		if(do_break){	
-			hash_table_deinit(&hash_table);
-			break;	
-		}
-
-		if(valid){
-			ready_for_gnu_plot(&hash_table, file);
-		}
-
-		hash_table_deinit(&hash_table);
 	}
+
+	hash_table_deinit(&hash_table);
 
 	free(text);
-	fclose(file);
+	free(buff);
+	clock_t end = clock();
+	
+	double time = double(end - start)/CLOCKS_PER_SEC;
+	printf("Programm has been working for %lf seconds.\n", time);
 
 	return 0;	
 }
 
 
-bool hash_table_init(Hash_table_t *hash_table, const char name[], const size_t init_table_size /*= HASH_TABLE_INIT_SIZE*/){
+bool hash_table_init(Hash_table_t *hash_table, const char name[]){
 
 	table_assert(hash_table != nullptr);
-	if(init_table_size < 0){
+	if(HASH_TABLE_SIZE < 0){
 		return false;	
-	}
+	}		
 
-	hash_table->canary1 = CANARY_VALUE;
+	debug_only(hash_table->canary1 = CANARY_VALUE;)
 	
-	hash_table->size = init_table_size;
+	hash_table->size = HASH_TABLE_SIZE;
 
 	for(size_t i = 0; i < hash_table->size; i++){
 		LIST_INIT(hash_table->data + i);
@@ -91,34 +78,69 @@ bool hash_table_init(Hash_table_t *hash_table, const char name[], const size_t i
 	
 	hash_table->name = name[0] == '&' ? name + 1 : name;
 
-	hash_table->canary2 = CANARY_VALUE;
-
-	//table_assert(check_list(hash_table, __LOCATION__));
+	debug_only(hash_table->canary2 = CANARY_VALUE;)
+	
  
 	return true;
 }
 
 
-bool hash_table_put(Hash_table_t *hash_table, Elem_t elem, hash_t hash){
+int hash_table_put(Hash_table_t *hash_table, List_elem_t elem, hash_t hash){
 
 	table_assert(hash_table != nullptr);
 
-	List_t * list = (hash_table->data + hash % THE_GREATEST_PRIME_NUMBER);
- 	list -> head == 0 ? (list_add_head(list), list_set(list, list->head, elem)) : list_add_after(list, elem, list->head);
-	//table_assert(check_list(hash_table, __LOCATION__));
- 
-	return true;
+	List_t * list = (hash_table->data + hash % HASH_TABLE_SIZE);
+	int pos = -1;
+	list->head == 0 ? (list->head = list_add_head(list), pos = list->head, list_set(list, pos, elem)) : pos = list_add_after(list, elem, list->head);
+ 	
+	return pos;
 }
 
-void ready_for_gnu_plot(Hash_table_t *hash_table, FILE * file){
+int hash_table_find(Hash_table_t *hash_table, Key_t key, hash_t hash){
 
-	fprintf(file, "%s,", hash_table->hash_name);
+	table_assert(hash_table != nullptr);
+	
+	bool found = false;
+	int pos = -1;
+	List_t * lst = (hash_table->data + hash % HASH_TABLE_SIZE);
+	
+	
+	for(int i = 0; i < lst->size; i++){
 
-	for(int i = 0; i < hash_table->size; i++){
-		fprintf(file, "%d,", (hash_table->data + i)->size - 1);
+		pos = list_find(lst, i);
+		
+		if(pos < 0){
+			break;
+		}
+
+		List_elem_t temp = list_get(lst, pos);
+		
+		if(temp == nullptr){
+			continue;	
+		}
+		if(temp.key == key){
+			found = true;
+			break;	
+		}
 	}
-	fprintf(file, "\n");
+	return found ? pos : -1;
 }
+
+List_elem_t hash_table_get(Hash_table_t *hash_table, int pos, hash_t hash){
+
+	table_assert(hash_table != nullptr);
+	
+	return list_get(hash_table->data + hash%HASH_TABLE_SIZE, pos);
+}
+
+
+bool hash_table_del(Hash_table_t *hash_table, int pos, hash_t hash){
+
+	table_assert(hash_table != nullptr);
+
+	return list_del(hash_table->data + hash%HASH_TABLE_SIZE, pos);
+}
+
 
 bool hash_table_deinit(Hash_table_t *hash_table){
 
@@ -132,6 +154,7 @@ bool hash_table_deinit(Hash_table_t *hash_table){
 	}
 	return true;
 }
+
 
 
 

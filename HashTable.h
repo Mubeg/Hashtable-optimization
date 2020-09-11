@@ -1,5 +1,6 @@
 #include"ionegin"
 #include"List.h"
+#include <time.h>
 
 
 #define HASH_TABLE_INIT(name, ...) hash_table_init((name), #name, ##__VA_ARGS__)
@@ -7,9 +8,9 @@
 
 
 const int THE_GREATEST_PRIME_NUMBER = 1303;
-const char OTABLE_FILE[] = "ofile.csv";
 const char ITABLE_FILE[] = "itext.txt";
-const long long int HASH_TABLE_INIT_SIZE = 1303*1303*1303;
+const long long int HASH_TABLE_SIZE = 115249; //no_more
+const char HASH_TABLE_LOG_FILE[]   = "hash_table_log.txt";
 
 
 
@@ -18,24 +19,30 @@ struct Hash_table_t {
 	const char * name;
 	const char * hash_name;
 
-	Canary_t canary1;
+	debug_only(Canary_t canary1;)
 
-	List_t data[THE_GREATEST_PRIME_NUMBER];
+	List_t data[HASH_TABLE_SIZE];
 
 	size_t size;
 
-	Canary_t canary2;
+	debug_only(Canary_t canary2;)
 
 };
 
 
-bool hash_table_init(Hash_table_t *hash_table, const char name[], const size_t init_table_size /*= HASH_TABLE_INIT_SIZE*/);
+bool hash_table_init(Hash_table_t *hash_table, const char name[]);
 
 
-bool hash_table_put(Hash_table_t *hash_table, Elem_t elem, hash_t hash);
+int  hash_table_put(Hash_table_t *hash_table, Elem_t elem, hash_t hash);
 
 
-void ready_for_gnu_plot(Hash_table_t *hash_table, FILE * file);
+int hash_table_find(Hash_table_t *hash_table, Elem_t elem, hash_t hash);
+
+
+Elem_t hash_table_get(Hash_table_t *hash_table, int pos, hash_t hash);
+
+
+bool hash_table_del(Hash_table_t *hash_table, int pos, hash_t hash);
 
 
 bool hash_table_deinit(Hash_table_t *hash_table);
