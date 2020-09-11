@@ -1,5 +1,6 @@
 #include"ionegin"
 #include"List.h"
+#include"optimized.cpp"
 #include <time.h>
 
 
@@ -16,8 +17,8 @@ const char HASH_TABLE_LOG_FILE[]   = "hash_table_log.txt";
 
 struct Hash_table_t {
 
-	const char * name;
-	const char * hash_name;
+	debug_only(const char * name;)
+	debug_only(const char * hash_name;)
 
 	debug_only(Canary_t canary1;)
 

@@ -21,13 +21,10 @@ int main(){
 		//printf("Cycle#%d\n",_);
 		
 		for(size_t i = 0; i < text_size; i++){	
-		
-			List_elem_t = 
 			
 			hash_t hash = my_hash(text[i].str, sizeof(char)*text[i].size);
 
 			int pos = hash_table_find(&hash_table, text[i].str, hash);
-
 			if (pos < 0){
 				pos = hash_table_put(&hash_table, text[i].str, hash);
 			}
@@ -76,7 +73,7 @@ bool hash_table_init(Hash_table_t *hash_table, const char name[]){
 	}
 	
 	
-	hash_table->name = name[0] == '&' ? name + 1 : name;
+	debug_only(hash_table->name = name[0] == '&' ? name + 1 : name;)
 
 	debug_only(hash_table->canary2 = CANARY_VALUE;)
 	
@@ -85,7 +82,7 @@ bool hash_table_init(Hash_table_t *hash_table, const char name[]){
 }
 
 
-int hash_table_put(Hash_table_t *hash_table, List_elem_t elem, hash_t hash){
+int hash_table_put(Hash_table_t *hash_table, Elem_t elem, hash_t hash){
 
 	table_assert(hash_table != nullptr);
 
@@ -96,7 +93,7 @@ int hash_table_put(Hash_table_t *hash_table, List_elem_t elem, hash_t hash){
 	return pos;
 }
 
-int hash_table_find(Hash_table_t *hash_table, Key_t key, hash_t hash){
+int hash_table_find(Hash_table_t *hash_table, Elem_t key, hash_t hash){
 
 	table_assert(hash_table != nullptr);
 	
@@ -113,12 +110,12 @@ int hash_table_find(Hash_table_t *hash_table, Key_t key, hash_t hash){
 			break;
 		}
 
-		List_elem_t temp = list_get(lst, pos);
+		Elem_t temp = list_get(lst, pos);
 		
 		if(temp == nullptr){
 			continue;	
 		}
-		if(temp.key == key){
+		if(!strcmp(temp, key)){
 			found = true;
 			break;	
 		}
@@ -126,7 +123,7 @@ int hash_table_find(Hash_table_t *hash_table, Key_t key, hash_t hash){
 	return found ? pos : -1;
 }
 
-List_elem_t hash_table_get(Hash_table_t *hash_table, int pos, hash_t hash){
+Elem_t hash_table_get(Hash_table_t *hash_table, int pos, hash_t hash){
 
 	table_assert(hash_table != nullptr);
 	

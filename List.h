@@ -32,23 +32,16 @@
 typedef char * Elem_t;
 #define ELEM_PRINT "%s" 
 
-typedef int Key_t;
-
 typedef long long int Canary_t;
 #define CANARY_PRINT "%lX"
 
 typedef unsigned long long int hash_t;
 #define HASH_PRINT "%Lu"
 
-typedef List_elem_t{
-	Elem_t data;
-	Key_t key;
-};
-
 
 struct Cluster_t{
 
-	List_elem_t data;
+	Elem_t data;
 	int next;
 	int prev;
 
@@ -116,20 +109,20 @@ const char IMAGE_OUT[]  = "Graph.ps";
 const int MAX_COMMAND_LEN = 100;
 const char OFILE[] = "tempfile";
 const int END_FUNCTION = 0;
-//const int LIST_CLUSTER_SIZE = sizeof(List_elem_t) + 2*sizeof(int);
+//const int LIST_CLUSTER_SIZE = sizeof(Elem_t) + 2*sizeof(int);
 
 
 
 bool list_init(List_t *lst, const char name[], const size_t init_list_size = LIST_INIT_SIZE);
 
 
-int list_add_before(List_t *lst, List_elem_t elem, int pos);
+int list_add_before(List_t *lst, Elem_t elem, int pos);
 
 
-int list_add_after(List_t *lst, List_elem_t elem, int pos);
+int list_add_after(List_t *lst, Elem_t elem, int pos);
 
 
-int list_add_between(List_t *lst, List_elem_t elem, int pos_left, int pos_right);
+int list_add_between(List_t *lst, Elem_t elem, int pos_left, int pos_right);
 
 
 int list_add_head(List_t * lst);
@@ -144,16 +137,16 @@ int list_find(List_t *lst, size_t logical_pos, int head = -1);
 bool list_deinit(List_t *lst);
 
 
-List_elem_t list_get(List_t *lst, int pos);
+Elem_t list_get(List_t *lst, int pos);
 
 
-bool list_set(List_t *lst, int pos, List_elem_t elem);
+bool list_set(List_t *lst, int pos, Elem_t elem);
 
 
 bool list_resize_if_needed(List_t *lst, bool is_increasing = false);
 
 
-bool list_shift_unwatched_poison(void * buff, List_elem_t poison, size_t size, int shift);
+bool list_shift_unwatched_poison(void * buff, Elem_t poison, size_t size, int shift);
 
 
 void set_data(List_t * lst);
@@ -186,7 +179,7 @@ bool check_maxsize(List_t * const stk);
 bool check_number_of_poison(List_t * const stk);
 
 
-bool is_poison(List_elem_t elem, long long int poison, const size_t Elem_size);
+bool is_poison(Elem_t elem, long long int poison, const size_t Elem_size);
 
 
 bool check_nullptr(const void * const stk);
@@ -246,7 +239,7 @@ bool list_init(List_t *lst, const char name[], const size_t init_list_size /*= L
 
 	for(int i = 0; i < lst->maxsize; i++){	
 
-		debug_only(fill_data_with_poison(&DATA(i), 1, i == 0 ? POISON_POISON : POISON, sizeof(List_elem_t)));
+		debug_only(fill_data_with_poison(&DATA(i), 1, i == 0 ? POISON_POISON : POISON, sizeof(Elem_t)));
 		fill_data_with_poison(&NEXT(i), 1,  0, sizeof(int));
 		fill_data_with_poison(&PREV(i), 1, -1, sizeof(int));
 	}
@@ -273,7 +266,7 @@ bool list_init(List_t *lst, const char name[], const size_t init_list_size /*= L
 	return true;
 }
 
-int list_add_before(List_t *lst, List_elem_t elem, int pos){
+int list_add_before(List_t *lst, Elem_t elem, int pos){
 
 	list_assert(check_list(lst, __LOCATION__));
 	
@@ -284,7 +277,7 @@ int list_add_before(List_t *lst, List_elem_t elem, int pos){
 	return new_pos;
 }
 
-int list_add_after(List_t *lst, List_elem_t elem, int pos){
+int list_add_after(List_t *lst, Elem_t elem, int pos){
 
 	list_assert(check_list(lst, __LOCATION__));
 	
@@ -295,7 +288,7 @@ int list_add_after(List_t *lst, List_elem_t elem, int pos){
 	return new_pos;
 }
 
-int list_add_between(List_t *lst, List_elem_t elem, int pos_left, int pos_right){
+int list_add_between(List_t *lst, Elem_t elem, int pos_left, int pos_right){
 
 	list_assert(check_list(lst, __LOCATION__));
 	
@@ -304,7 +297,7 @@ int list_add_between(List_t *lst, List_elem_t elem, int pos_left, int pos_right)
 		return -1;
 	}
 
-	debug_only(if(is_poison(elem, POISON, sizeof(List_elem_t))){
+	debug_only(if(is_poison(elem, POISON, sizeof(Elem_t))){
 		lst->false_poison++;
 	})
 
@@ -348,7 +341,7 @@ bool list_del(List_t *lst, int pos){
 	list_assert(pos >= 0);
 
 
-	debug_only(if(is_poison(DATA(pos), POISON, sizeof(List_elem_t))){
+	debug_only(if(is_poison(DATA(pos), POISON, sizeof(Elem_t))){
 		lst->false_poison--;
 	})
 
@@ -358,7 +351,7 @@ bool list_del(List_t *lst, int pos){
 	NEXT(pos) = lst->free;
 	PREV(pos) = -1;
 	lst->free = pos;
-	debug_only(fill_data_with_poison(&DATA(pos), 1, POISON, sizeof(List_elem_t)));
+	debug_only(fill_data_with_poison(&DATA(pos), 1, POISON, sizeof(Elem_t)));
 
 	lst->size--;
 
@@ -402,7 +395,7 @@ bool list_deinit(List_t *lst){
 }
 
 
-List_elem_t list_get(List_t *lst, int pos){
+Elem_t list_get(List_t *lst, int pos){
 
 	list_assert(check_list(lst, __LOCATION__));
 	list_assert(pos >= 0);
@@ -411,12 +404,12 @@ List_elem_t list_get(List_t *lst, int pos){
 }
 
 
-bool list_set(List_t *lst, int pos, List_elem_t elem){
+bool list_set(List_t *lst, int pos, Elem_t elem){
 
 	list_assert(check_list(lst, __LOCATION__));
 	list_assert(pos >= 0);
 	
-	debug_only(if(is_poison(elem, POISON, sizeof(List_elem_t))){
+	debug_only(if(is_poison(elem, POISON, sizeof(Elem_t))){
 		lst->false_poison++;
 	})
 	DATA(pos) = elem;
@@ -451,7 +444,7 @@ bool list_resize_if_needed(List_t *lst, bool is_increasing/* = false*/){
 
 		for(int i = lst->maxsize/2; i < lst->maxsize; i++){
 
-			debug_only(fill_data_with_poison(&DATA(i), 1, POISON, sizeof(List_elem_t)));
+			debug_only(fill_data_with_poison(&DATA(i), 1, POISON, sizeof(Elem_t)));
 			fill_data_with_poison(&NEXT(i), 1,  0, sizeof(int));
 			fill_data_with_poison(&PREV(i), 1, -1, sizeof(int));
 		}
@@ -466,8 +459,8 @@ bool list_resize_if_needed(List_t *lst, bool is_increasing/* = false*/){
 	}
 	/*if(!is_increasing && stk->size < stk->maxsize/4){
 
-		void * temp = recalloc_safe(stk->buff, stk->maxsize*sizeof(List_elem_t) + sizeof(Canary_t), 
-				       stk->maxsize*sizeof(List_elem_t)/2 + sizeof(Canary_t)*2, sizeof(char));
+		void * temp = recalloc_safe(stk->buff, stk->maxsize*sizeof(Elem_t) + sizeof(Canary_t), 
+				       stk->maxsize*sizeof(Elem_t)/2 + sizeof(Canary_t)*2, sizeof(char));
 		if(temp == nullptr){
 			fprintf(stderr, "realloc problem while making smaller ????\n");
 			return false;
@@ -688,7 +681,7 @@ debug_only(void list_dump(List_t * const lst, const char called_from_file[], int
 				fprintf(log_file, "\t\t\t Cluster_t [%d]{\n"
 						  "\t\t\t\t data = %d %s\n"
 						  "\t\t\t\t next = %d\n"
-						  "\t\t\t\t prev = %d\n", i, DATA(i), is_poison(DATA(i), POISON, sizeof(List_elem_t)) ? "POISON?" : "", 
+						  "\t\t\t\t prev = %d\n", i, DATA(i), is_poison(DATA(i), POISON, sizeof(Elem_t)) ? "POISON?" : "", 
 									NEXT(i), PREV(i));
 			}
 	}
@@ -723,7 +716,7 @@ debug_only(void list_dump(List_t * const lst, const char called_from_file[], int
 
 		char * buff = [0x231141]
 		Canary_t * canary_dynamic1 [0x1425123] = ...
-		List_elem_t *data = [0x23123]{
+		Elem_t *data = [0x23123]{
 			* data[0] = ..
 			  data[1] = ...  POISON?
 			....
@@ -809,7 +802,7 @@ debug_only(bool check_number_of_poison(List_t * const lst){
 	for(size_t i = 0; i < lst->maxsize; i++){
 
 		//printf("[%04d]: %d\n", i, lst->data[i]);
-		counter += is_poison(DATA(i), POISON, sizeof(List_elem_t)) ? 1 : 0;
+		counter += is_poison(DATA(i), POISON, sizeof(Elem_t)) ? 1 : 0;
 	}
 
 	//printf("%d %d %d %d \n", counter, lst->false_poison, lst->maxsize, lst->size);
@@ -817,7 +810,7 @@ debug_only(bool check_number_of_poison(List_t * const lst){
 	return counter - lst->false_poison == lst->maxsize - lst->size;
 })
 
-debug_only(bool is_poison(List_elem_t elem, long long int poison, const size_t Elem_size){
+debug_only(bool is_poison(Elem_t elem, long long int poison, const size_t Elem_size){
 
 	for(unsigned int i = 0; i < Elem_size; i++){
 		if(((char *) &elem)[i] != ((char *) &poison)[i]){
