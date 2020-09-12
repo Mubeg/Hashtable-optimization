@@ -886,7 +886,7 @@ debug_only(hash_t find_sum_hash(List_t * const lst, size_t size){
 
 })
 
-hash_t my_hash(const void * const data, size_t size){
+/*hash_t my_hash(const void * const data, size_t size){
 
 	if(data == nullptr) return false;
 
@@ -899,7 +899,7 @@ hash_t my_hash(const void * const data, size_t size){
 
 	return hash_sum;
 
-}
+}*/
 
 bool check_size(List_t * const lst){
 	
